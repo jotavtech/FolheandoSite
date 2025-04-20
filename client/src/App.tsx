@@ -6,9 +6,10 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import CadastroLivro from "@/pages/CadastroLivro";
 import Livros from "@/pages/Livros";
+import LivroDetalhes from "@/pages/LivroDetalhes";      // <-- importe
 import Avaliacoes from "@/pages/Avaliacoes";
 import Login from "@/pages/Login";
-import Profile from "@/pages/Profile"; // Importe o componente Profile
+import Profile from "@/pages/Profile";
 
 function Router() {
   return (
@@ -16,15 +17,17 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/cadastro-livro" component={CadastroLivro} />
       <Route path="/livros" component={Livros} />
+      <Route path="/livro/:id" component={LivroDetalhes} />
+
       <Route path="/avaliacoes" component={Avaliacoes} />
       <Route path="/login" component={Login} />
-      <Route path="/profile" component={Profile} /> {/* Adicione a rota para o perfil */}
+      <Route path="/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );
 }
 
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <Router />
@@ -32,5 +35,3 @@ function App() {
     </QueryClientProvider>
   );
 }
-
-export default App;
