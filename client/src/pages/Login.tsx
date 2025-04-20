@@ -59,7 +59,7 @@ export default function Login() {
           senha: "",
           confirmPassword: ""
         });
-        window.location.href = "login.html"; // ou usar navegação via Wouter se preferir
+        window.location.href = "/login"; // ou usar navegação via Wouter se preferir
       } else {
         const erro = await resposta.json();
         alert("Erro ao cadastrar: " + (erro?.erro || "Desconhecido"));
@@ -84,7 +84,7 @@ export default function Login() {
         const usuario = await resposta.json();
         localStorage.setItem('usuario', JSON.stringify(usuario));
         localStorage.setItem('userId', usuario.id); // ESSENCIAL
-        window.location.href = "/";
+        window.location.href = "/Profile";
       } else {
         alert('Login inválido.');
       }

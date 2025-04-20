@@ -8,6 +8,7 @@ import CadastroLivro from "@/pages/CadastroLivro";
 import Livros from "@/pages/Livros";
 import Avaliacoes from "@/pages/Avaliacoes";
 import Login from "@/pages/Login";
+import Profile from "@/pages/Profile"; // Importe o componente Profile
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/livros" component={Livros} />
       <Route path="/avaliacoes" component={Avaliacoes} />
       <Route path="/login" component={Login} />
+      <Route path="/profile" component={Profile} /> {/* Adicione a rota para o perfil */}
       <Route component={NotFound} />
     </Switch>
   );
