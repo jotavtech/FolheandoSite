@@ -9,6 +9,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLocation } from "wouter";
+import { useUser } from "@/contexts/UserContext";
+import { ChevronDown } from "lucide-react";
 
 // Defina a interface do usuário
 interface Usuario {
@@ -18,142 +21,80 @@ interface Usuario {
 }
 
 const Header = () => {
-  const [navItems] = useState([
-    { label: "Início", href: "/" },
-    { label: "Livros", href: "/livros", icon: BookOpen },
-    { label: "Cadastrar Livro", href: "/cadastro-livro", icon: BookPlus },
-    { label: "Avaliações", href: "/avaliacoes", icon: Star },
-  ]);
-  
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, navigate] = useLocation();
+  const user = useUser();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  useEffect(() => {
-    // Verificar se o usuário está logado
-    const userId = localStorage.getItem('userId');
-    if (!userId) {
-      setIsLoading(false);
-      return;
-    }
-
-    // Carregar dados do usuário
-    const carregarUsuario = async () => {
-      try {
-        const res = await fetch(`http://localhost:3000/usuarios/${userId}`);
-        if (res.ok) {
-          const user = await res.json();
-          setUsuario(user);
-        }
-      } catch (error) {
-        console.error("Erro ao carregar usuário:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    carregarUsuario();
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('userId');
-    window.location.href = '/';
+  const logout = () => {
+    setDropdownOpen(false);
+    window.location.href = '/'; 
   };
 
   return (
     <div>
-      <header className="w-full bg-[#F5F5F0] py-4 px-6 md:px-8 lg:px-12 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold">Folheando</h1>
-        </div>
-        
-        <nav className="hidden md:block">
-          <ul className="flex space-x-6">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <Link href={item.href}>
-                  <span className="text-gray-800 hover:text-gray-600 cursor-pointer">{item.label}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        
-        <div className="flex items-center space-x-3">
-          {!isLoading && (
-            usuario ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="flex items-center space-x-2 cursor-pointer">
-                    <img 
-                      src={usuario.foto || 'https://via.placeholder.com/40'} 
-                      alt="Foto do usuário" 
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <span className="text-sm font-medium hidden sm:inline">{usuario.nome}</span>
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <Link href="/profile">
-                    <DropdownMenuItem className="cursor-pointer">
-                      Meu Perfil
-                    </DropdownMenuItem>
-                  </Link>
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sair</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link href="/login">
-                <Button className="bg-[#3A4257] text-white px-4 py-1 rounded-sm text-sm h-8">
-                  Entrar
-                </Button>
+      <header className="bg-white shadow-sm py-6 px-8 md:px-12 lg:px-16">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <h1 
+              className="text-3xl md:text-4xl font-bold text-[#3A4257] cursor-pointer hover:text-[#2A3142] transition-colors"
+              onClick={() => navigate('/')}
+            >
+              Folheando
+            </h1>
+            <nav className="hidden md:flex space-x-8">
+              <Link href="/" className="text-gray-600 hover:text-gray-900 text-lg font-medium">
+                Início
               </Link>
-            )
-          )}
-          
-          <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" aria-label="Menu">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <nav className="flex flex-col mt-6">
-                <ul className="space-y-4">
-                  {navItems.map((item) => (
-                    <li key={item.href}>
-                      <Link href={item.href}>
-                        <span className="text-gray-800 hover:text-gray-600 block py-2 cursor-pointer">{item.label}</span>
-                      </Link>
-                    </li>
-                  ))}
-                  {usuario && (
-                    <li>
-                      <Link href="/profile">
-                        <span className="text-gray-800 hover:text-gray-600 block py-2 cursor-pointer">Meu Perfil</span>
-                      </Link>
-                    </li>
-                  )}
-                  {usuario && (
-                    <li>
-                      <button 
-                        onClick={handleLogout}
-                        className="text-gray-800 hover:text-gray-600 block py-2 cursor-pointer w-full text-left"
-                      >
-                        Sair
-                      </button>
-                    </li>
-                  )}
-                </ul>
-              </nav>
-            </SheetContent>
-          </Sheet>
+              <Link href="/livros" className="text-gray-600 hover:text-gray-900 text-lg font-medium">
+                Livros
+              </Link>
+              <Link href="/avaliacoes" className="text-gray-600 hover:text-gray-900 text-lg font-medium">
+                Avaliações
+              </Link>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-6">
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center space-x-3 text-gray-700 hover:text-gray-900 text-lg"
+                >
+                  <span>Olá, {user.name}</span>
+                  <ChevronDown className="h-5 w-5" />
+                </button>
+                {dropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-10">
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate('/profile');
+                      }}
+                      className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Meu Perfil
+                    </button>
+                    <button
+                      onClick={logout}
+                      className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sair
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/login" className="bg-[#3A4257] text-white px-6 py-3 rounded-md hover:bg-[#2A3142] text-lg">
+                Entrar
+              </Link>
+            )}
+          </div>
         </div>
       </header>
-      <div className="h-1 w-full bg-gradient-to-r from-black to-white"></div>
+      
+      {/* Barra degradê */}
+      <div className="h-2 w-full bg-gradient-to-r from-black to-white"></div>
     </div>
   );
 };

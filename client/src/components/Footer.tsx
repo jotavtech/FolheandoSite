@@ -1,29 +1,60 @@
 import { Link } from "wouter";
 
-const Footer = () => {
+export default function Footer() {
   return (
-    <footer className="py-6 px-6 md:px-8 lg:px-12 bg-[#6B7F9E] text-white">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <h2 className="text-xl font-medium">Folheando</h2>
-            <p className="text-sm mt-1">© {new Date().getFullYear()} Todos os direitos reservados</p>
-          </div>
+    <footer className="bg-[#3A4257] text-white py-12 px-8 md:px-12 lg:px-16">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          {/* Sobre */}
           <div>
-            <nav>
-              <ul className="flex flex-wrap space-x-4">
-                <li><Link href="/"><span className="text-sm cursor-pointer">Início</span></Link></li>
-                <li><Link href="/livros"><span className="text-sm cursor-pointer">Livros</span></Link></li>
-                <li><Link href="/cadastro-livro"><span className="text-sm cursor-pointer">Cadastrar Livro</span></Link></li>
-                <li><Link href="/avaliacoes"><span className="text-sm cursor-pointer">Avaliações</span></Link></li>
-                <li><Link href="/login"><span className="text-sm cursor-pointer">Entrar</span></Link></li>
-              </ul>
-            </nav>
+            <h3 className="text-xl font-semibold mb-6">Sobre o Folheando</h3>
+            <p className="text-gray-300 leading-relaxed text-base">
+              Compartilhe suas leituras e descubra novos livros através das avaliações de outros leitores.
+            </p>
           </div>
+
+          {/* Links */}
+          <div>
+            <h3 className="text-xl font-semibold mb-6">Links Úteis</h3>
+            <ul className="space-y-3">
+              <li>
+                <Link href="/" className="text-gray-300 hover:text-white transition-colors text-base">
+                  Início
+                </Link>
+              </li>
+              <li>
+                <Link href="/livros" className="text-gray-300 hover:text-white transition-colors text-base">
+                  Livros
+                </Link>
+              </li>
+              <li>
+                <Link href="/avaliacoes" className="text-gray-300 hover:text-white transition-colors text-base">
+                  Avaliações
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contato */}
+          <div>
+            <h3 className="text-xl font-semibold mb-6">Contato</h3>
+            <div className="space-y-3">
+              <p className="text-gray-300 text-base">
+                Email: contato@folheando.com
+              </p>
+              <p className="text-gray-300 text-base">
+                Telefone: (11) 99999-9999
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-gray-600 mt-12 pt-8 text-center">
+          <p className="text-gray-300 text-base">
+            © 2024 Folheando. Todos os direitos reservados.
+          </p>
         </div>
       </div>
     </footer>
   );
-};
-
-export default Footer;
+}
