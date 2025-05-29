@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
+import { useUserActions } from "@/contexts/UserContext";
 
 export default function Login() {
   const [, navigate] = useLocation();
+  const { setUser } = useUserActions();
   
   const [formCadastro, setFormCadastro] = useState({
     username: "",
@@ -49,7 +51,7 @@ export default function Login() {
     }
 
     try {
-      const resposta = await fetch("http://localhost:5000/cadastro", {
+      const resposta = await fetch("http://localhost:5000/api/cadastro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -95,7 +97,7 @@ export default function Login() {
     setError("");
 
     try {
-      const resposta = await fetch('http://localhost:5000/login', {
+      const resposta = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formLogin)
@@ -110,9 +112,15 @@ export default function Login() {
         localStorage.setItem('userName', usuario.nome || usuario.name);
         localStorage.setItem('userEmail', usuario.email);
         
+        // Atualizar contexto do usuário
+        setUser({
+          id: usuario.id,
+          name: usuario.nome || usuario.name,
+          email: usuario.email
+        });
+        
         // Redirecionar para home
         navigate('/');
-        window.location.reload(); // Para atualizar o UserContext
       } else {
         setError('Email ou senha incorretos.');
       }
@@ -134,9 +142,15 @@ export default function Login() {
       localStorage.setItem('userName', usuarioMock.nome);
       localStorage.setItem('userEmail', usuarioMock.email);
       
+      // Atualizar contexto do usuário
+      setUser({
+        id: usuarioMock.id,
+        name: usuarioMock.nome,
+        email: usuarioMock.email
+      });
+      
       // Redirecionar para home
       navigate('/');
-      window.location.reload(); // Para atualizar o UserContext
     } finally {
       setIsLoading(false);
     }

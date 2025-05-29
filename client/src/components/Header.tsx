@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Menu, BookOpen, BookPlus, Star, LogOut } from "lucide-react";
+import { Menu, BookOpen, BookPlus, Star, LogOut, Heart } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -10,7 +10,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
-import { useUser } from "@/contexts/UserContext";
+import { useUser, useUserActions } from "@/contexts/UserContext";
+import { usePreferences } from "@/contexts/PreferencesContext";
 import { ChevronDown } from "lucide-react";
 
 // Defina a interface do usuário
@@ -23,11 +24,13 @@ interface Usuario {
 const Header = () => {
   const [, navigate] = useLocation();
   const user = useUser();
+  const { logout } = useUserActions();
+  const { hasCompletedQuiz } = usePreferences();
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const logout = () => {
+  const handleLogout = () => {
     setDropdownOpen(false);
-    window.location.href = '/'; 
+    logout(); // Usar a função do contexto
   };
 
   return (
@@ -48,6 +51,12 @@ const Header = () => {
               <Link href="/livros" className="text-gray-600 hover:text-gray-900 text-lg font-medium">
                 Livros
               </Link>
+              {hasCompletedQuiz && (
+                <Link href="/livros-recomendados" className="text-gray-600 hover:text-gray-900 text-lg font-medium flex items-center gap-2">
+                  <Heart className="w-5 h-5 text-red-500" />
+                  Recomendados
+                </Link>
+              )}
               <Link href="/avaliacoes" className="text-gray-600 hover:text-gray-900 text-lg font-medium">
                 Avaliações
               </Link>
@@ -71,14 +80,29 @@ const Header = () => {
                         setDropdownOpen(false);
                         navigate('/profile');
                       }}
-                      className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                     >
+                      <BookOpen className="w-4 h-4" />
                       Meu Perfil
                     </button>
+                    {!hasCompletedQuiz && (
+                      <button
+                        onClick={() => {
+                          setDropdownOpen(false);
+                          navigate('/quiz-preferencias');
+                        }}
+                        className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <Star className="w-4 h-4" />
+                        Quiz de Preferências
+                      </button>
+                    )}
+                    <hr className="border-gray-200 my-1" />
                     <button
-                      onClick={logout}
-                      className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                     >
+                      <LogOut className="w-4 h-4" />
                       Sair
                     </button>
                   </div>
@@ -89,6 +113,56 @@ const Header = () => {
                 Entrar
               </Link>
             )}
+
+            {/* Mobile Menu */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="md:hidden">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="bg-white">
+                <nav className="flex flex-col space-y-4 mt-8">
+                  <Link href="/" className="text-gray-700 hover:text-gray-900 text-lg font-medium">
+                    Início
+                  </Link>
+                  <Link href="/livros" className="text-gray-700 hover:text-gray-900 text-lg font-medium">
+                    Livros
+                  </Link>
+                  {hasCompletedQuiz && (
+                    <Link href="/livros-recomendados" className="text-gray-700 hover:text-gray-900 text-lg font-medium flex items-center gap-2">
+                      <Heart className="w-5 h-5 text-red-500" />
+                      Recomendados
+                    </Link>
+                  )}
+                  <Link href="/avaliacoes" className="text-gray-700 hover:text-gray-900 text-lg font-medium">
+                    Avaliações
+                  </Link>
+                  {user && (
+                    <>
+                      <hr className="border-gray-200" />
+                      <Link href="/profile" className="text-gray-700 hover:text-gray-900 text-lg font-medium flex items-center gap-2">
+                        <BookOpen className="w-4 h-4" />
+                        Meu Perfil
+                      </Link>
+                      {!hasCompletedQuiz && (
+                        <Link href="/quiz-preferencias" className="text-gray-700 hover:text-gray-900 text-lg font-medium flex items-center gap-2">
+                          <Star className="w-4 h-4" />
+                          Quiz de Preferências
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleLogout}
+                        className="text-gray-700 hover:text-gray-900 text-lg font-medium text-left flex items-center gap-2"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sair
+                      </button>
+                    </>
+                  )}
+                </nav>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>

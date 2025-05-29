@@ -3,6 +3,108 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 
 export function registerApiRoutes(app: Express): void {
+  // Rota de health check
+  app.get("/api/healthcheck", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
+  // Rota de login
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { email, senha } = req.body;
+      
+      if (!email || !senha) {
+        return res.status(400).json({ error: "Email e senha são obrigatórios" });
+      }
+
+      // Por enquanto, simulamos um login bem-sucedido para teste
+      // Em produção, isso seria validado com banco de dados
+      const mockUser = {
+        id: "1",
+        nome: email.split("@")[0],
+        name: email.split("@")[0],
+        email: email
+      };
+
+      res.json(mockUser);
+    } catch (error) {
+      console.error("Erro no login:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Rota de cadastro
+  app.post("/api/cadastro", async (req, res) => {
+    try {
+      const { username, nome, email, senha } = req.body;
+      
+      if (!username || !nome || !email || !senha) {
+        return res.status(400).json({ error: "Todos os campos são obrigatórios" });
+      }
+
+      // Por enquanto, simulamos um cadastro bem-sucedido
+      // Em produção, isso seria salvo no banco de dados
+      res.status(201).json({ message: "Usuário cadastrado com sucesso" });
+    } catch (error) {
+      console.error("Erro no cadastro:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Rota de logout
+  app.post("/api/logout", async (req, res) => {
+    try {
+      // Por enquanto, apenas retornamos sucesso
+      // Em produção, isso limparia a sessão do usuário
+      res.json({ message: "Logout realizado com sucesso" });
+    } catch (error) {
+      console.error("Erro no logout:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
+  // Rota para buscar livros em destaque
+  app.get("/api/livros-destaque", async (req, res) => {
+    try {
+      // Dados mockados de livros em destaque
+      const mockLivros = [
+        {
+          idGoogle: "CoUdBAAAQBAJ",
+          titulo: "O Alquimista",
+          autores: ["Paulo Coelho"],
+          imagem: "https://books.google.com/books/content?id=CoUdBAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+          mediaNotas: 8.5
+        },
+        {
+          idGoogle: "kotPYEqx7kMC",
+          titulo: "1984",
+          autores: ["George Orwell"],
+          imagem: "https://books.google.com/books/content?id=kotPYEqx7kMC&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+          mediaNotas: 9.2
+        },
+        {
+          idGoogle: "aWZzLPhY4o0C",
+          titulo: "O Senhor dos Anéis",
+          autores: ["J.R.R. Tolkien"],
+          imagem: "https://books.google.com/books/content?id=aWZzLPhY4o0C&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+          mediaNotas: 9.8
+        },
+        {
+          idGoogle: "VSkuAAAAYAAJ",
+          titulo: "Dom Casmurro",
+          autores: ["Machado de Assis"],
+          imagem: "https://books.google.com/books/content?id=VSkuAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+          mediaNotas: 7.8
+        }
+      ];
+
+      res.json(mockLivros);
+    } catch (error) {
+      console.error("Erro ao buscar livros em destaque:", error);
+      res.status(500).json({ error: "Erro interno do servidor" });
+    }
+  });
+
   // Rota para buscar livros usando a API do Google Books
   app.get("/api/buscar-livros", async (req, res) => {
     try {

@@ -9,6 +9,7 @@ interface User {
 interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
+  logout: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -31,8 +32,26 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const logout = () => {
+    // Limpar dados do usuário do localStorage
+    localStorage.removeItem('userId');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('usuario');
+    
+    // Limpar preferências do quiz
+    localStorage.removeItem('userPreferences');
+    localStorage.removeItem('quizCompleted');
+    
+    // Limpar estado do usuário no contexto
+    setUser(null);
+    
+    // Redirecionar para a página inicial
+    window.location.href = '/';
+  };
+
   return (
-    <UserContext.Provider value={{ user, setUser }}>
+    <UserContext.Provider value={{ user, setUser, logout }}>
       {children}
     </UserContext.Provider>
   );
@@ -44,4 +63,12 @@ export function useUser() {
     throw new Error('useUser must be used within a UserProvider');
   }
   return context.user;
+}
+
+export function useUserActions() {
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUserActions must be used within a UserProvider');
+  }
+  return { setUser: context.setUser, logout: context.logout };
 } 
