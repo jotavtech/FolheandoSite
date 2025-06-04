@@ -21,7 +21,7 @@ const Header = () => {
   const [navItems] = useState([
     { label: "Início", href: "/" },
     { label: "Livros", href: "/livros", icon: BookOpen },
-    { label: "Cadastrar Livro", href: "/cadastro-livro", icon: BookPlus },
+    // { label: "Cadastrar Livro", href: "/cadastro-livro", icon: BookPlus },
     { label: "Avaliações", href: "/avaliacoes", icon: Star },
   ]);
   
