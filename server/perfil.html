@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meu Perfil</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background-color: #eee;
+      margin-bottom: 20px;
+    }
+
+    button {
+      padding: 5px 10px;
+      margin-left: 5px;
+    }
+
+    .resenha {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+
+    .resenha h4 {
+      margin: 0 0 5px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div id="bem-vindo">Bem-vindo!</div>
+    <div>
+      <button onclick="voltar()">Voltar para Home</button>
+      <button onclick="sair()">Sair</button>
+    </div>
+  </header>
+
+  <h1>Perfil do Usuário</h1>
+
+  <div>
+    <div>
+      <img id="fotoPerfil" src="" alt="Foto de perfil" style="max-height: 150px; border-radius: 8px;"/><br>
+      <input type="file" id="inputFoto" />
+      <button onclick="enviarFoto()">Enviar nova foto</button>
+    </div>    
+    <p><strong>Nome:</strong> <span id="nome"></span></p>
+    <p><strong>Bio:</strong></p>
+    <p id="bio"></p>
+    <button onclick="editarPerfil()">Editar Perfil</button>
+  </div>
+
+  <hr/>
+
+  <h2>Minhas Resenhas</h2>
+  <div id="resenhas">Carregando...</div>
+
+  <hr/>
+
+  <h2>Lista de Desejos</h2>
+  <div id="desejos">Carregando...</div>
+
+  <script>
+    const userId = localStorage.getItem('userId');
+    let usuarioAtual = null;
+
+    if (!userId) {
+      alert("Usuário não está logado.");
+      window.location.href = 'login.html';
+    }
+
+    function voltar() {
+      window.location.href = 'busca.html';
+    }
+
+    function sair() {
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('userId');
+      window.location.href = 'index.html';
+    }
+
+    async function carregarPerfil() {
+      const res = await fetch(`http://localhost:3000/usuarios/${userId}`);
+      const user = await res.json();
+      usuarioAtual = user;
+      document.getElementById('fotoPerfil').src = user.foto || 'https://via.placeholder.com/150';
+      document.getElementById('nome').innerText = user.nome;
+      document.getElementById('bio').innerText = user.bio || 'Sem bio';
+      document.getElementById('bem-vindo').innerText = `Bem-vindo, ${user.nome}`;
+    }
+
+    async function editarPerfil() {
+      const novoNome = prompt("Editar nome:", usuarioAtual?.nome || '');
+      if (novoNome === null || novoNome.trim() === '') return;
+
+      const novaBio = prompt("Editar bio:", usuarioAtual?.bio || '');
+      if (novaBio === null) return;
+
+      await fetch(`http://localhost:3000/usuarios/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: novoNome.trim(), bio: novaBio.trim() })
+      });
+
+      await carregarPerfil();
+    }
+
+    async function enviarFoto() {
+  const arquivo = document.getElementById('inputFoto').files[0];
+  if (!arquivo) return alert('Selecione uma imagem.');
+
+  const formData = new FormData();
+  formData.append('foto', arquivo);
+
+  const res = await fetch(`http://localhost:3000/upload-foto/${userId}`, {
+    method: 'POST',
+    body: formData
+  });
+
+  const dados = await res.json();
+  if (res.ok) {
+    alert('Foto atualizada!');
+    document.getElementById('fotoPerfil').src = dados.foto;
+  } else {
+    alert('Erro ao enviar foto');
+  }
+}
+
+
+    async function carregarResenhas() {
+      const res = await fetch(`http://localhost:3000/resenhas-usuario/${userId}`);
+      const data = await res.json();
+
+      const container = document.getElementById('resenhas');
+      container.innerHTML = '';
+
+      const resenhasValidas = data.filter(r => r.status === 'lido' || r.status === 'lendo');
+
+      if (resenhasValidas.length === 0) {
+        container.innerText = 'Nenhuma resenha disponível.';
+        return;
+      }
+
+      resenhasValidas.forEach((resenha) => {
+        const div = document.createElement('div');
+        div.classList.add('resenha');
+
+        const titulo = document.createElement('h4');
+        titulo.innerText = resenha.livro.titulo;
+
+        const nota = document.createElement('p');
+        nota.innerText = `Nota: ${resenha.nota ?? 'N/A'}`;
+
+        const texto = document.createElement('p');
+        texto.innerText = resenha.resenha ?? '(sem texto)';
+
+        div.appendChild(titulo);
+        div.appendChild(nota);
+        div.appendChild(texto);
+        container.appendChild(div);
+      });
+    }
+
+    async function carregarListaDesejos() {
+      const res = await fetch(`http://localhost:3000/leitura/usuario/${userId}`);
+      const data = await res.json();
+
+      const container = document.getElementById('desejos');
+      container.innerHTML = '';
+
+      if (data.length === 0) {
+        container.innerText = 'Nenhum livro marcado como "Quero ler".';
+        return;
+      }
+
+      data.forEach((item) => {
+        const div = document.createElement('div');
+        div.style.marginBottom = '10px';
+
+        const link = document.createElement('a');
+        link.href = `livro.html?id=${item.livro.id}`;
+        link.innerText = item.livro.titulo;
+        link.style.textDecoration = 'none';
+        link.style.fontWeight = 'bold';
+
+        div.appendChild(link);
+        container.appendChild(div);
+      });
+    }
+
+    carregarPerfil();
+    carregarResenhas();
+    carregarListaDesejos();
+  </script>
+</body>
+</html>

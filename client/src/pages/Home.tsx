@@ -119,8 +119,7 @@ const Home = () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Primeiro tenta buscar da API real
-      const res = await fetch('http://localhost:5000/api/livros-destaque');
+      const res = await fetch('http://localhost:3002/api/livros-destaque');
       
       if (!res.ok) {
         throw new Error('API não disponível');
@@ -129,69 +128,9 @@ const Home = () => {
       const data: Livro[] = await res.json();
       setLivrosDestaque(data);
     } catch (err) {
-      console.log("API não disponível, usando dados mockados:", err);
-      
-      // Fallback para dados mockados
-      const mockLivros: Livro[] = [
-        {
-          idGoogle: "example1",
-          titulo: "O Alquimista",
-          autores: ["Paulo Coelho"],
-          imagem: "https://books.google.com/books/content?id=CoUdBAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          mediaNotas: 8.5
-        },
-        {
-          idGoogle: "example2",
-          titulo: "1984",
-          autores: ["George Orwell"],
-          imagem: "https://books.google.com/books/content?id=kotPYEqx7kMC&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          mediaNotas: 9.2
-        },
-        {
-          idGoogle: "example3",
-          titulo: "O Senhor dos Anéis",
-          autores: ["J.R.R. Tolkien"],
-          imagem: "https://books.google.com/books/content?id=aWZzLPhY4o0C&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          mediaNotas: 9.8
-        },
-        {
-          idGoogle: "example4",
-          titulo: "Dom Casmurro",
-          autores: ["Machado de Assis"],
-          imagem: "https://books.google.com/books/content?id=VSkuAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          mediaNotas: 7.8
-        },
-        {
-          idGoogle: "example5",
-          titulo: "O Cortiço",
-          autores: ["Aluísio Azevedo"],
-          imagem: "https://books.google.com/books/content?id=TjQOAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          mediaNotas: 8.3
-        },
-        {
-          idGoogle: "example6",
-          titulo: "Orgulho e Preconceito",
-          autores: ["Jane Austen"],
-          imagem: "https://books.google.com/books/content?id=s7NItwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          mediaNotas: 8.9
-        },
-        {
-          idGoogle: "example7",
-          titulo: "Harry Potter e a Pedra Filosofal",
-          autores: ["J.K. Rowling"],
-          imagem: "https://books.google.com/books/content?id=wrOQLV6xB-wC&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          mediaNotas: 9.5
-        },
-        {
-          idGoogle: "example8",
-          titulo: "Fahrenheit 451",
-          autores: ["Ray Bradbury"],
-          imagem: "https://books.google.com/books/content?id=4Q_QDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          mediaNotas: 8.7
-        }
-      ];
-      
-      setLivrosDestaque(mockLivros);
+      console.error("Erro ao carregar livros em destaque:", err);
+      setError("Não foi possível carregar os livros em destaque. Verifique se o servidor está rodando.");
+      setLivrosDestaque([]);
     } finally {
       setIsLoading(false);
     }
@@ -235,7 +174,7 @@ const Home = () => {
           <div className="absolute -top-4 -right-4 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute -bottom-8 -left-8 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
           <div className="absolute top-1/2 left-1/2 w-48 h-48 bg-white/5 rounded-full blur-2xl animate-bounce delay-500"></div>
-        </div>
+            </div>
         
         <div className={`max-w-7xl mx-auto text-center relative z-10 transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
           <div className="flex items-center justify-center gap-2 mb-6 animate-fade-in-up delay-200">
@@ -244,7 +183,7 @@ const Home = () => {
               {isLoggedIn ? `Bem-vindo de volta, ${userName}!` : 'Descubra sua próxima leitura'}
             </span>
             <Sparkles className="w-8 h-8 text-yellow-300 animate-pulse" />
-          </div>
+              </div>
           
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-8 animate-fade-in-up delay-300 bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
             {isLoggedIn ? 'Continue Sua Jornada Literária' : 'Bem-vindo ao Folheando'}
@@ -308,7 +247,7 @@ const Home = () => {
                   className="bg-[#3A4257] text-white px-8 py-4 text-lg hover:bg-[#2A3142] transform hover:scale-105 transition-all duration-300"
                 >
                   Tentar novamente
-                </Button>
+              </Button>
               </div>
             </div>
           ) : livrosDestaque.length > 0 ? (
@@ -357,15 +296,15 @@ const Home = () => {
                     >
                       Avaliar
                     </Button>
-                  </div>
-                </div>
+            </div>
+          </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-20 animate-fade-in">
               <BookOpen className="w-24 h-24 text-gray-300 mx-auto mb-6 animate-pulse" />
               <p className="text-gray-600 text-xl">Nenhum livro em destaque no momento.</p>
-            </div>
+          </div>
           )}
         </div>
       </section>
@@ -450,8 +389,8 @@ const Home = () => {
                             ))}
                           </div>
                         </div>
-                      </div>
-                      
+          </div>
+          
                       {/* Comentário */}
                       <p className="text-gray-700 text-lg leading-relaxed mb-6 italic group-hover:text-gray-900 transition-colors duration-300">
                         "{depoimento.comentario}"
@@ -461,9 +400,9 @@ const Home = () => {
                       <div className="pt-4 border-t border-gray-100">
                         <p className="text-sm text-gray-500 mb-1">Livro favorito atual:</p>
                         <p className="font-semibold text-[#3A4257] group-hover:text-[#2A3142] transition-colors duration-300">{depoimento.livroFavorito}</p>
-                      </div>
-                    </div>
-                  </div>
+          </div>
+        </div>
+          </div>
                 ))}
               </div>
             </div>
@@ -493,8 +432,8 @@ const Home = () => {
             >
               <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
               Adicionar seu comentário
-            </Button>
-          </div>
+                    </Button>
+                  </div>
 
           {/* Estatísticas da Comunidade com animações */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mt-20">
@@ -531,7 +470,7 @@ const Home = () => {
               <Sparkles className="w-8 h-8 text-yellow-300 animate-spin" />
               <span className="text-xl font-medium">Junte-se à nossa comunidade</span>
               <Sparkles className="w-8 h-8 text-yellow-300 animate-spin" />
-            </div>
+          </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent">
               Pronto para começar?
             </h2>
@@ -545,8 +484,8 @@ const Home = () => {
               <Users className="w-5 h-5 mr-2 group-hover:animate-bounce" />
               Cadastrar-se Agora
             </Button>
-          </div>
-        </section>
+        </div>
+      </section>
       )}
 
       <Footer />

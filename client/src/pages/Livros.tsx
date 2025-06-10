@@ -45,7 +45,7 @@ export default function Livros() {
     
     setIsLoading(true);
     if (isNewSearch) {
-      setError(null);
+    setError(null);
       setBooks([]);
     }
     
@@ -238,7 +238,7 @@ export default function Livros() {
                   </div>
                 )}
               </div>
-              <Button 
+              <Button
                 type="submit" 
                 className="bg-[#3A4257] text-white h-12 px-8 text-lg hover:bg-[#2A3142] transform hover:scale-105 transition-all duration-300 hover:shadow-xl"
               >
@@ -318,12 +318,12 @@ export default function Livros() {
           {books.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
               {books.map((book, index) => (
-                <div
-                  key={book.idGoogle}
+              <div
+                key={book.idGoogle}
                   className={`group cursor-pointer transition-all duration-500 transform hover:scale-105 animate-fade-in-up hover-lift`}
                   style={{ animationDelay: `${index * 50}ms` }}
-                  onClick={() => navigate(`/livro/${book.idGoogle}`)}
-                >
+                onClick={() => navigate(`/livro/${book.idGoogle}`)}
+              >
                   <div className="bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-300 p-6 h-full flex flex-col">
                     <div className="relative overflow-hidden rounded-lg mb-4 group-hover:shadow-lg transition-shadow duration-300">
                       <BookCard 
@@ -411,7 +411,7 @@ export default function Livros() {
                 <div className="animate-ping absolute inset-0 rounded-full h-8 w-8 border-2 border-[#3A4257] opacity-20"></div>
               </div>
               <span className="text-gray-600 animate-pulse">Carregando mais livros...</span>
-            </div>
+          </div>
           )}
 
           {/* Sentinel para infinite scroll */}

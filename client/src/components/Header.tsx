@@ -60,9 +60,9 @@ const Header = () => {
               <Link href="/avaliacoes" className="text-gray-600 hover:text-gray-900 text-lg font-medium">
                 Avaliações
               </Link>
-            </nav>
+        </nav>
           </div>
-
+        
           <div className="flex items-center gap-6">
             {user ? (
               <div className="relative">
@@ -110,17 +110,17 @@ const Header = () => {
               </div>
             ) : (
               <Link href="/login" className="bg-[#3A4257] text-white px-6 py-3 rounded-md hover:bg-[#2A3142] text-lg">
-                Entrar
+                  Entrar
               </Link>
-            )}
-
+          )}
+          
             {/* Mobile Menu */}
-            <Sheet>
+          <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm" className="md:hidden">
-                  <Menu className="h-6 w-6" />
-                </Button>
-              </SheetTrigger>
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
               <SheetContent side="right" className="bg-white">
                 <nav className="flex flex-col space-y-4 mt-8">
                   <Link href="/" className="text-gray-700 hover:text-gray-900 text-lg font-medium">
@@ -149,9 +149,9 @@ const Header = () => {
                         <Link href="/quiz-preferencias" className="text-gray-700 hover:text-gray-900 text-lg font-medium flex items-center gap-2">
                           <Star className="w-4 h-4" />
                           Quiz de Preferências
-                        </Link>
-                      )}
-                      <button
+                      </Link>
+                  )}
+                      <button 
                         onClick={handleLogout}
                         className="text-gray-700 hover:text-gray-900 text-lg font-medium text-left flex items-center gap-2"
                       >
@@ -160,9 +160,9 @@ const Header = () => {
                       </button>
                     </>
                   )}
-                </nav>
-              </SheetContent>
-            </Sheet>
+              </nav>
+            </SheetContent>
+          </Sheet>
           </div>
         </div>
       </header>

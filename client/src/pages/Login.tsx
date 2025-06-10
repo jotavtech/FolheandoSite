@@ -51,7 +51,7 @@ export default function Login() {
     }
 
     try {
-      const resposta = await fetch("http://localhost:5000/api/cadastro", {
+      const resposta = await fetch("http://localhost:3002/api/cadastro", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,16 +76,8 @@ export default function Login() {
         setError("Erro ao cadastrar: " + (erro?.message || erro?.erro || "Erro desconhecido"));
       }
     } catch (err) {
-      // Se a API não estiver disponível, simular cadastro bem-sucedido
-      console.warn("API não disponível, simulando cadastro:", err);
-      alert("Usuário cadastrado com sucesso! (Simulado - API offline)");
-      setFormCadastro({
-        username: "",
-        nome: "",
-        email: "",
-        senha: "",
-        confirmPassword: ""
-      });
+      console.error("Erro ao conectar com a API:", err);
+      setError("Erro ao conectar com o servidor. Verifique se o servidor está rodando.");
     } finally {
       setIsLoading(false);
     }
@@ -97,10 +89,13 @@ export default function Login() {
     setError("");
 
     try {
-      const resposta = await fetch('http://localhost:5000/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formLogin)
+      const resposta = await fetch("http://localhost:3002/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: formLogin.email,
+          senha: formLogin.senha
+        }),
       });
 
       if (resposta.ok) {
@@ -122,35 +117,12 @@ export default function Login() {
         // Redirecionar para home
         navigate('/');
       } else {
-        setError('Email ou senha incorretos.');
+        const erro = await resposta.json();
+        setError(erro?.error || 'Email ou senha incorretos.');
       }
     } catch (err) {
-      // Se a API não estiver disponível, simular login para teste
-      console.warn("API não disponível, simulando login:", err);
-      
-      // Criar usuário mockado para teste
-      const usuarioMock = {
-        id: "1",
-        nome: formLogin.email.split("@")[0],
-        name: formLogin.email.split("@")[0],
-        email: formLogin.email
-      };
-      
-      // Salvar dados do usuário no localStorage
-      localStorage.setItem('usuario', JSON.stringify(usuarioMock));
-      localStorage.setItem('userId', usuarioMock.id);
-      localStorage.setItem('userName', usuarioMock.nome);
-      localStorage.setItem('userEmail', usuarioMock.email);
-      
-      // Atualizar contexto do usuário
-      setUser({
-        id: usuarioMock.id,
-        name: usuarioMock.nome,
-        email: usuarioMock.email
-      });
-      
-      // Redirecionar para home
-      navigate('/');
+      console.error("Erro ao conectar com a API:", err);
+      setError("Erro ao conectar com o servidor. Verifique se o servidor está rodando.");
     } finally {
       setIsLoading(false);
     }
@@ -328,4 +300,4 @@ export default function Login() {
       <Footer />
     </div>
   );
-} 
+}

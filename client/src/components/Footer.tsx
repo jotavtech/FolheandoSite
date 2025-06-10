@@ -32,7 +32,7 @@ export default function Footer() {
                   Avaliações
                 </Link>
               </li>
-            </ul>
+              </ul>
           </div>
 
           {/* Contato */}

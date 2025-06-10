@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Star } from "lucide-react";
 
 interface Usuario {
-  id: number;
+  id: string;
   nome: string;
 }
 
@@ -21,9 +21,9 @@ interface Livro {
 }
 
 interface Resenha {
-  id: number;
+  id: string;
   user: Usuario;
-  userId: number;
+  userId: string;
   status: string;
   nota: number;
   resenha: string;
@@ -31,6 +31,17 @@ interface Resenha {
   titulo: string;
   autor: string;
   imagem: string;
+  createdAt?: string;
+}
+
+interface ApiResponse {
+  resenhas: Resenha[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
 }
 
 export default function Avaliacoes() {
@@ -41,206 +52,77 @@ export default function Avaliacoes() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedReview, setExpandedReview] = useState<number | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [expandedReview, setExpandedReview] = useState<string | null>(null);
   
   const itemsPerPage = 6;
   const debounceRef = useRef<number>();
 
-  // Buscar todas as resenhas
-  const fetchResenhas = async () => {
+  // Buscar resenhas da API
+  const fetchResenhas = async (page: number = 1, search: string = "") => {
     setIsLoading(true);
     setError(null);
+    
     try {
-      // Primeiro tenta buscar da API real
-      const res = await fetch('http://localhost:5000/api/resenhas-todas');
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: itemsPerPage.toString(),
+        ...(search && { search })
+      });
+
+      console.log(`Buscando resenhas da API: page=${page}, search="${search}"`);
+      const response = await fetch(`http://localhost:3002/api/resenhas-todas?${params}`);
       
-      if (!res.ok) {
-        throw new Error('API não disponível');
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.status}`);
       }
       
-      const data: Resenha[] = await res.json();
-      setResenhas(data);
-      setFilteredResenhas(data);
+      const data: ApiResponse = await response.json();
+      
+      if (data.resenhas && Array.isArray(data.resenhas)) {
+        setResenhas(data.resenhas);
+        setFilteredResenhas(data.resenhas);
+        setTotalPages(data.pagination.pages);
+        console.log(`Carregadas ${data.resenhas.length} resenhas da API`);
+      } else {
+        setResenhas([]);
+        setFilteredResenhas([]);
+        setTotalPages(0);
+        setError("Nenhuma resenha encontrada no banco de dados.");
+      }
     } catch (err) {
-      console.log("API não disponível, usando dados mockados:", err);
-      
-      // Fallback para dados mockados com imagens reais do Google Books
-      const mockResenhas: Resenha[] = [
-        {
-          id: 1,
-          user: { id: 1, nome: "João Silva" },
-          userId: 1,
-          status: "lido",
-          nota: 9,
-          resenha: "Um livro extraordinário que mudou minha perspectiva sobre a vida. A narrativa é envolvente e os personagens são muito bem desenvolvidos. Recomendo fortemente para quem gosta de ficção contemporânea.",
-          livro: {
-            idGoogle: "example1",
-            titulo: "O Alquimista",
-            autor: "Paulo Coelho",
-            imagem: "https://books.google.com/books/content?id=CoUdBAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-          },
-          titulo: "O Alquimista",
-          autor: "Paulo Coelho",
-          imagem: "https://books.google.com/books/content?id=CoUdBAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-        },
-        {
-          id: 2,
-          user: { id: 2, nome: "Maria Santos" },
-          userId: 2,
-          status: "lido",
-          nota: 8,
-          resenha: "Uma obra clássica que todos deveriam ler. A profundidade dos temas abordados é impressionante e a escrita é magistral. Orwell conseguiu criar um mundo distópico que ainda hoje ressoa com nossa realidade.",
-          livro: {
-            idGoogle: "example2",
-            titulo: "1984",
-            autor: "George Orwell",
-            imagem: "https://books.google.com/books/content?id=kotPYEqx7kMC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-          },
-          titulo: "1984",
-          autor: "George Orwell",
-          imagem: "https://books.google.com/books/content?id=kotPYEqx7kMC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-        },
-        {
-          id: 3,
-          user: { id: 3, nome: "Pedro Costa" },
-          userId: 3,
-          status: "lido",
-          nota: 10,
-          resenha: "Simplesmente perfeito! Uma história que te prende do início ao fim. Os detalhes são incríveis e a construção do mundo é fantástica. Tolkien criou uma obra-prima que transcende gerações.",
-          livro: {
-            idGoogle: "example3",
-            titulo: "O Senhor dos Anéis",
-            autor: "J.R.R. Tolkien",
-            imagem: "https://books.google.com/books/content?id=aWZzLPhY4o0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-          },
-          titulo: "O Senhor dos Anéis",
-          autor: "J.R.R. Tolkien",
-          imagem: "https://books.google.com/books/content?id=aWZzLPhY4o0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-        },
-        {
-          id: 4,
-          user: { id: 4, nome: "Ana Oliveira" },
-          userId: 4,
-          status: "lido",
-          nota: 7,
-          resenha: "Um bom livro, mas esperava mais. A história é interessante, mas alguns momentos são um pouco lentos. Ainda assim, é uma obra importante da literatura brasileira.",
-          livro: {
-            idGoogle: "example4",
-            titulo: "Dom Casmurro",
-            autor: "Machado de Assis",
-            imagem: "https://books.google.com/books/content?id=VSkuAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-          },
-          titulo: "Dom Casmurro",
-          autor: "Machado de Assis",
-          imagem: "https://books.google.com/books/content?id=VSkuAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-        },
-        {
-          id: 5,
-          user: { id: 5, nome: "Carlos Ferreira" },
-          userId: 5,
-          status: "lido",
-          nota: 9,
-          resenha: "Uma obra-prima da literatura brasileira. A forma como o autor retrata a sociedade da época é genial. Aluísio Azevedo conseguiu capturar a essência do naturalismo brasileiro.",
-          livro: {
-            idGoogle: "example5",
-            titulo: "O Cortiço",
-            autor: "Aluísio Azevedo",
-            imagem: "https://books.google.com/books/content?id=TjQOAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-          },
-          titulo: "O Cortiço",
-          autor: "Aluísio Azevedo",
-          imagem: "https://books.google.com/books/content?id=TjQOAAAAYAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-        },
-        {
-          id: 6,
-          user: { id: 6, nome: "Lucia Mendes" },
-          userId: 6,
-          status: "lido",
-          nota: 8,
-          resenha: "Um romance envolvente que explora temas profundos sobre amor e sociedade. Jane Austen conseguiu criar personagens memoráveis e uma crítica social sutil mas poderosa.",
-          livro: {
-            idGoogle: "example6",
-            titulo: "Orgulho e Preconceito",
-            autor: "Jane Austen",
-            imagem: "https://books.google.com/books/content?id=s7NItwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-          },
-          titulo: "Orgulho e Preconceito",
-          autor: "Jane Austen",
-          imagem: "https://books.google.com/books/content?id=s7NItwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-        },
-        {
-          id: 7,
-          user: { id: 7, nome: "Roberto Lima" },
-          userId: 7,
-          status: "lido",
-          nota: 9,
-          resenha: "Uma aventura épica que marcou minha infância e continua sendo relevante hoje. A jornada de Santiago é inspiradora e cheia de lições de vida.",
-          livro: {
-            idGoogle: "example7",
-            titulo: "Harry Potter e a Pedra Filosofal",
-            autor: "J.K. Rowling",
-            imagem: "https://books.google.com/books/content?id=wrOQLV6xB-wC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-          },
-          titulo: "Harry Potter e a Pedra Filosofal",
-          autor: "J.K. Rowling",
-          imagem: "https://books.google.com/books/content?id=wrOQLV6xB-wC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-        },
-        {
-          id: 8,
-          user: { id: 8, nome: "Fernanda Costa" },
-          userId: 8,
-          status: "lido",
-          nota: 8,
-          resenha: "Um clássico da ficção científica que continua atual. A visão de Bradbury sobre o futuro é ao mesmo tempo assustadora e fascinante.",
-          livro: {
-            idGoogle: "example8",
-            titulo: "Fahrenheit 451",
-            autor: "Ray Bradbury",
-            imagem: "https://books.google.com/books/content?id=4Q_QDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-          },
-          titulo: "Fahrenheit 451",
-          autor: "Ray Bradbury",
-          imagem: "https://books.google.com/books/content?id=4Q_QDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
-        }
-      ];
-      
-      setResenhas(mockResenhas);
-      setFilteredResenhas(mockResenhas);
+      console.error("Erro ao buscar resenhas da API:", err);
+      setError("Erro ao conectar com o servidor. Verifique se o servidor está rodando.");
+      setResenhas([]);
+      setFilteredResenhas([]);
+      setTotalPages(0);
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchResenhas();
+    fetchResenhas(1, "");
   }, []);
 
-  // Filtrar resenhas baseado na busca
+  // Busca com debounce
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredResenhas(resenhas);
-      setCurrentPage(1);
-      return;
-    }
-
     window.clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(() => {
-      const filtered = resenhas.filter(resenha => 
-        resenha.titulo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        resenha.autor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        resenha.user.nome.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        resenha.resenha.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredResenhas(filtered);
+      if (searchQuery.trim()) {
+        fetchResenhas(1, searchQuery);
+      } else {
+        fetchResenhas(1, "");
+      }
       setCurrentPage(1);
-    }, 300);
-  }, [searchQuery, resenhas]);
+    }, 500);
+  }, [searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
   };
 
-  const toggleExpandReview = (id: number) => {
+  const toggleExpandReview = (id: string) => {
     setExpandedReview(expandedReview === id ? null : id);
   };
 
@@ -253,15 +135,12 @@ export default function Avaliacoes() {
     ));
   };
 
-  // Paginação
-  const totalPages = Math.ceil(filteredResenhas.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentResenhas = filteredResenhas.slice(startIndex, endIndex);
-
   const goToPage = (page: number) => {
-    setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (page !== currentPage) {
+      setCurrentPage(page);
+      fetchResenhas(page, searchQuery);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -292,28 +171,30 @@ export default function Avaliacoes() {
                 className="bg-[#3A4257] text-white h-12 px-8 text-lg"
                 onClick={() => navigate('/livros')}
               >
-                Escrever uma Avaliação
-              </Button>
+              Escrever uma Avaliação
+            </Button>
             </div>
           </div>
-
+          
           {/* Loading e Error States */}
           {isLoading && (
             <div className="flex justify-center items-center h-96">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-[#3A4257]"></div>
-            </div>
+                    </div>
           )}
 
           {error && (
-            <div className="text-red-600 text-center py-12">
-              <p className="text-xl">{error}</p>
-              <Button 
-                onClick={fetchResenhas} 
-                className="mt-6 bg-[#3A4257] text-white h-12 px-8 text-lg"
-              >
-                Tentar novamente
-              </Button>
-            </div>
+            <div className="text-center py-12">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+                <p className="text-red-800 text-lg mb-4">{error}</p>
+                <Button 
+                  onClick={() => fetchResenhas(1, searchQuery)} 
+                  className="bg-[#3A4257] text-white h-12 px-8 text-lg"
+                >
+                  Tentar novamente
+                </Button>
+                  </div>
+                </div>
           )}
 
           {/* Resultados da busca */}
@@ -329,19 +210,36 @@ export default function Avaliacoes() {
 
               {filteredResenhas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-96 gap-6">
-                  <p className="text-gray-600 text-2xl">Nenhuma avaliação encontrada.</p>
-                  <Button 
-                    onClick={() => setSearchQuery("")} 
-                    className="bg-[#3A4257] text-white h-12 px-8 text-lg"
-                  >
-                    Ver todas as avaliações
-                  </Button>
+                  <div className="text-center">
+                    <p className="text-gray-600 text-2xl mb-4">Nenhuma avaliação encontrada.</p>
+                    {searchQuery ? (
+                      <div className="space-y-4">
+                        <p className="text-gray-500 text-lg">Tente buscar por outro termo ou</p>
+                        <Button 
+                          onClick={() => setSearchQuery("")} 
+                          className="bg-[#3A4257] text-white h-12 px-8 text-lg"
+                        >
+                          Ver todas as avaliações
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-gray-500 text-lg">Seja o primeiro a avaliar um livro!</p>
+                        <Button 
+                          onClick={() => navigate('/livros')} 
+                          className="bg-[#3A4257] text-white h-12 px-8 text-lg"
+                        >
+                          Avaliar um livro
+                    </Button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <>
                   {/* Grid de avaliações */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                    {currentResenhas.map((resenha) => (
+                    {filteredResenhas.map((resenha) => (
                       <div key={resenha.id} className="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-shadow">
                         <div className="flex gap-6 mb-6">
                           <div className="flex-shrink-0">
@@ -384,11 +282,11 @@ export default function Avaliacoes() {
                               {expandedReview === resenha.id ? 'Ler menos' : 'Ler mais'}
                             </Button>
                           )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
+                </div>
+              </div>
+            ))}
+          </div>
+          
                   {/* Paginação */}
                   {totalPages > 1 && (
                     <div className="flex justify-center">
@@ -429,8 +327,8 @@ export default function Avaliacoes() {
                         >
                           &gt;
                         </Button>
-                      </div>
-                    </div>
+            </div>
+          </div>
                   )}
                 </>
               )}

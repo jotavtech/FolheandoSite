@@ -102,7 +102,7 @@ export default function AvaliarLivro() {
     try {
       const payload = {
         userId: usuario.id,
-        livroId: id,
+        idGoogleLivro: id,
         status: avaliacao.status,
         nota: avaliacao.nota,
         resenha: avaliacao.resenha,
@@ -111,7 +111,7 @@ export default function AvaliarLivro() {
         imagem: livro.imagem,
       };
 
-      const response = await fetch("http://localhost:5000/resenhas", {
+      const response = await fetch("http://localhost:3002/api/resenhas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

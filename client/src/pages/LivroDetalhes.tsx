@@ -98,7 +98,7 @@ export default function LivroDetalhes() {
       .finally(() => setIsLoading(false));
 
     // 3b) resenhas do seu backend
-    fetch(`http://localhost:5000/resenhas/${id}`)
+    fetch(`http://localhost:3002/api/resenhas/${id}`)
       .then((r) => r.json())
       .then((arr: Resenha[]) => {
         setResenhas(arr);
@@ -107,7 +107,7 @@ export default function LivroDetalhes() {
         }
       })
       .catch((err) => {
-        console.log("Erro ao carregar resenhas, usando fallback:", err);
+        console.error("Erro ao carregar resenhas:", err);
         setResenhas([]);
       });
 
@@ -120,7 +120,7 @@ export default function LivroDetalhes() {
     
     const payload = {
       userId: usuario.id,
-      livroId: id,
+      idGoogleLivro: id,
       status: statusMap[status as keyof typeof statusMap],
       nota,
       resenha: textoResenha,
@@ -130,15 +130,15 @@ export default function LivroDetalhes() {
     };
     
     try {
-      const url = editandoId
-        ? `http://localhost:5000/resenhas/${editandoId}`
-        : "http://localhost:5000/resenhas";
-      const method = editandoId ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    const url = editandoId
+        ? `http://localhost:3002/api/resenhas/${editandoId}`
+        : "http://localhost:3002/api/resenhas";
+    const method = editandoId ? "PUT" : "POST";
+    const res = await fetch(url, {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
       
       if (res.ok) {
         window.location.reload();
@@ -164,8 +164,8 @@ export default function LivroDetalhes() {
   const apagar = async (rid: number) => {
     if (!confirm("Apagar resenha?")) return;
     try {
-      await fetch(`http://localhost:5000/resenhas/${rid}`, { method: "DELETE" });
-      window.location.reload();
+      await fetch(`http://localhost:3002/api/resenhas/${rid}`, { method: "DELETE" });
+    window.location.reload();
     } catch (err) {
       console.error("Erro ao apagar resenha:", err);
       alert("Erro ao apagar resenha");
@@ -353,8 +353,8 @@ export default function LivroDetalhes() {
                       </Button>
                     )}
                   </div>
-                </div>
-              ))}
+          </div>
+        ))}
             </div>
           )}
         </div>
@@ -382,27 +382,27 @@ export default function LivroDetalhes() {
 
             <div>
               <label className="block text-lg font-medium mb-2">Nota (1 a 10)</label>
-              <Input
-                type="number"
-                min={1}
-                max={10}
-                value={nota}
-                onChange={(e) => setNota(Number(e.target.value))}
-                placeholder="Nota (1 a 10)"
+            <Input
+              type="number"
+              min={1}
+              max={10}
+              value={nota}
+              onChange={(e) => setNota(Number(e.target.value))}
+              placeholder="Nota (1 a 10)"
                 className="h-12 text-lg"
-              />
+            />
             </div>
 
             <div>
               <label className="block text-lg font-medium mb-2">Sua avaliação</label>
-              <Textarea
-                value={textoResenha}
-                onChange={(e) => setTextoResenha(e.target.value)}
+            <Textarea
+              value={textoResenha}
+              onChange={(e) => setTextoResenha(e.target.value)}
                 placeholder="Escreva sua avaliação sobre o livro..."
                 rows={6}
                 className="text-lg"
                 required
-              />
+            />
             </div>
 
             <Button 

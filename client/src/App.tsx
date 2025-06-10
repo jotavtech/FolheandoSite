@@ -42,8 +42,8 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <UserProvider>
         <PreferencesProvider>
-          <Router />
-          <Toaster />
+      <Router />
+      <Toaster />
         </PreferencesProvider>
       </UserProvider>
     </QueryClientProvider>

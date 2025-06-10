@@ -81,16 +81,16 @@ export default function Profile() {
       await carregarAvaliacoes(userId);
       // Carregar estatísticas
       await carregarEstatisticas(userId);
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   const carregarAvaliacoes = async (userId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/usuario/${userId}/avaliacoes`);
+      const response = await fetch(`http://localhost:3002/api/usuario/${userId}/avaliacoes`);
       
       if (!response.ok) {
         throw new Error('API não disponível');
@@ -99,52 +99,14 @@ export default function Profile() {
       const data = await response.json();
       setAvaliacoes(data);
     } catch (error) {
-      console.log("API não disponível, usando dados mockados:", error);
-      
-      // Dados mockados para demonstração
-      const mockAvaliacoes: Avaliacao[] = [
-        {
-          id: 1,
-          livroId: "example1",
-          titulo: "O Alquimista",
-          autor: "Paulo Coelho",
-          imagem: "https://books.google.com/books/content?id=CoUdBAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          nota: 9,
-          status: "lido",
-          resenha: "Um livro transformador que mudou minha perspectiva sobre seguir os sonhos. A jornada de Santiago é inspiradora e cheia de simbolismos profundos.",
-          dataAvaliacao: "2024-01-15"
-        },
-        {
-          id: 2,
-          livroId: "example2",
-          titulo: "1984",
-          autor: "George Orwell",
-          imagem: "https://books.google.com/books/content?id=kotPYEqx7kMC&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          nota: 10,
-          status: "lido",
-          resenha: "Obra-prima distópica que continua mais relevante do que nunca. A visão de Orwell sobre vigilância e controle é assustadoramente atual.",
-          dataAvaliacao: "2024-01-10"
-        },
-        {
-          id: 3,
-          livroId: "example3",
-          titulo: "Harry Potter e a Pedra Filosofal",
-          autor: "J.K. Rowling",
-          imagem: "https://books.google.com/books/content?id=wrOQLV6xB-wC&printsec=frontcover&img=1&zoom=1&source=gbs_api",
-          nota: 8,
-          status: "lendo",
-          resenha: "Relendo esta obra-prima da fantasia. A magia de Hogwarts continua encantadora mesmo depois de tantos anos.",
-          dataAvaliacao: "2024-01-08"
-        }
-      ];
-      
-      setAvaliacoes(mockAvaliacoes);
+      console.error("Erro ao carregar avaliações:", error);
+      setAvaliacoes([]);
     }
   };
 
   const carregarEstatisticas = async (userId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/usuario/${userId}/estatisticas`);
+      const response = await fetch(`http://localhost:3002/api/usuario/${userId}/estatisticas`);
       
       if (!response.ok) {
         throw new Error('API não disponível');
@@ -153,15 +115,13 @@ export default function Profile() {
       const data = await response.json();
       setEstatisticas(data);
     } catch (error) {
-      console.log("API não disponível, usando estatísticas mockadas:", error);
-      
-      // Estatísticas baseadas nas avaliações mockadas
+      console.error("Erro ao carregar estatísticas:", error);
       setEstatisticas({
-        totalAvaliacoes: 3,
-        livrosLidos: 2,
-        livrosLendo: 1,
-        livrosDesejados: 5,
-        notaMedia: 9.0
+        totalAvaliacoes: 0,
+        livrosLidos: 0,
+        livrosLendo: 0,
+        livrosDesejados: 0,
+        notaMedia: 0
       });
     }
   };
@@ -170,7 +130,7 @@ export default function Profile() {
     if (!usuario) return;
     
     try {
-      const response = await fetch(`http://localhost:5000/api/usuario/${usuario.id}/bio`, {
+      const response = await fetch(`http://localhost:3002/api/usuario/${usuario.id}/bio`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bio: editedBio })
@@ -190,12 +150,7 @@ export default function Profile() {
       }
     } catch (error) {
       console.error("Erro ao salvar bio:", error);
-      // Simular sucesso para demonstração
-      setUsuario(prev => prev ? { ...prev, bio: editedBio } : null);
-      const updatedUser = { ...usuario, bio: editedBio };
-      localStorage.setItem('usuario', JSON.stringify(updatedUser));
-      setIsEditing(false);
-      alert("Bio atualizada com sucesso! (Simulado)");
+      alert("Erro ao salvar a bio. Tente novamente.");
     }
   };
 
@@ -251,7 +206,7 @@ export default function Profile() {
   return (
     <div className="min-h-screen flex flex-col bg-[#F5F5F0]">
       <Header />
-      
+
       <main className="flex-1 py-16 px-8 md:px-12 lg:px-16">
         <div className="max-w-7xl mx-auto">
           
@@ -339,25 +294,25 @@ export default function Profile() {
                       {usuario.bio || "Nenhuma biografia adicionada ainda. Clique no ícone de edição para adicionar informações sobre você!"}
                     </p>
                   )}
-                </div>
-
+          </div>
+          
                 <div className="flex gap-3">
-                  <Button 
+              <Button 
                     onClick={() => navigate('/livros')}
                     className="bg-[#3A4257] text-white px-6 py-2"
-                  >
+              >
                     Explorar Livros
-                  </Button>
-                  <Button 
+              </Button>
+              <Button 
                     variant="outline"
                     onClick={handleLogout}
                     className="border-red-300 text-red-600 hover:bg-red-50 px-6 py-2"
-                  >
-                    Sair
-                  </Button>
-                </div>
-              </div>
+              >
+                Sair
+              </Button>
             </div>
+          </div>
+        </div>
           </div>
 
           {/* Estatísticas */}
@@ -427,7 +382,7 @@ export default function Profile() {
                   >
                     Explorar Livros
                   </Button>
-                </div>
+                  </div>
               ) : (
                 <div className="space-y-6">
                   {avaliacoes.map((avaliacao) => (
@@ -440,7 +395,7 @@ export default function Profile() {
                             imageUrl={avaliacao.imagem}
                             altText={avaliacao.titulo}
                           />
-                        </div>
+              </div>
                         
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-3">
@@ -453,13 +408,13 @@ export default function Profile() {
                                 <Badge className={statusMap[avaliacao.status as keyof typeof statusMap]?.color}>
                                   {statusMap[avaliacao.status as keyof typeof statusMap]?.label}
                                 </Badge>
-                              </div>
-                            </div>
+          </div>
+        </div>
                             <span className="text-sm text-gray-500">
                               {new Date(avaliacao.dataAvaliacao).toLocaleDateString('pt-BR')}
                             </span>
                           </div>
-                          
+
                           <p className="text-gray-700 leading-relaxed">
                             {avaliacao.resenha}
                           </p>
@@ -478,11 +433,11 @@ export default function Profile() {
                               onClick={() => navigate(`/avaliar-livro/${avaliacao.livroId}`)}
                             >
                               Editar Avaliação
-                            </Button>
+              </Button>
                           </div>
-                        </div>
-                      </div>
-                    </div>
+          </div>
+                  </div>
+                </div>
                   ))}
                   
                   {avaliacoes.length > 0 && (
@@ -494,16 +449,16 @@ export default function Profile() {
                       >
                         Ver Todas as Avaliações
                       </Button>
-                    </div>
-                  )}
-                </div>
+              </div>
+            )}
+          </div>
               )}
             </CardContent>
           </Card>
 
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );
