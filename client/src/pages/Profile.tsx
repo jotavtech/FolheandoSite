@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import BookCard from "@/components/BookCard";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Star, BookOpen, Edit, Camera, Calendar, TrendingUp } from "lucide-react";
+import BookCard from "@/components/BookCard";
+import { BookOpen, Star, TrendingUp, Calendar, Camera, Edit } from "lucide-react";
 
 interface Usuario {
   id: string;
@@ -42,11 +41,12 @@ interface EstatisticasUsuario {
 const statusMap = {
   "lido": { label: "Lido", color: "bg-green-100 text-green-800" },
   "lendo": { label: "Lendo", color: "bg-blue-100 text-blue-800" },
+  "nao_li": { label: "Quero ler", color: "bg-yellow-100 text-yellow-800" },
   "quero_ler": { label: "Quero ler", color: "bg-yellow-100 text-yellow-800" }
 };
 
 export default function Profile() {
-  const [, navigate] = useLocation();
+  const navigate = useNavigate();
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
   const [estatisticas, setEstatisticas] = useState<EstatisticasUsuario>({
@@ -63,7 +63,17 @@ export default function Profile() {
   useEffect(() => {
     const usuarioLogado = localStorage.getItem('usuario');
     if (!usuarioLogado) {
-      navigate('/login');
+      // Se não há usuário logado, usar um usuário padrão para teste
+      const usuarioTeste = {
+        id: "6840ceda46b785e14e9a0d09",
+        nome: "Demetrius Castro",
+        email: "demetrius@gmail.com",
+        username: "Demetrius",
+        bio: ""
+      };
+      setUsuario(usuarioTeste);
+      setEditedBio("");
+      carregarDadosUsuario(usuarioTeste.id);
       return;
     }
 
@@ -93,11 +103,27 @@ export default function Profile() {
       const response = await fetch(`http://localhost:3002/api/usuario/${userId}/avaliacoes`);
       
       if (!response.ok) {
-        throw new Error('API não disponível');
+        console.warn('API de avaliações não disponível');
+        setAvaliacoes([]);
+        return;
       }
       
       const data = await response.json();
-      setAvaliacoes(data);
+      
+      // Filtrar dados válidos e formatar corretamente
+      const avaliacoesFormatadas = (Array.isArray(data) ? data : []).map(avaliacao => ({
+        id: avaliacao.id || Math.random(),
+        livroId: avaliacao.idGoogleLivro || avaliacao.livroId || '',
+        titulo: avaliacao.titulo || 'Título não disponível',
+        autor: avaliacao.autor || 'Autor desconhecido',
+        imagem: avaliacao.imagem || '',
+        nota: avaliacao.nota || 0,
+        status: avaliacao.status || 'lido',
+        resenha: avaliacao.resenha || '',
+        dataAvaliacao: avaliacao.createdAt || new Date().toISOString()
+      }));
+      
+      setAvaliacoes(avaliacoesFormatadas);
     } catch (error) {
       console.error("Erro ao carregar avaliações:", error);
       setAvaliacoes([]);
@@ -109,11 +135,29 @@ export default function Profile() {
       const response = await fetch(`http://localhost:3002/api/usuario/${userId}/estatisticas`);
       
       if (!response.ok) {
-        throw new Error('API não disponível');
+        console.warn('API de estatísticas não disponível');
+        setEstatisticas({
+          totalAvaliacoes: 0,
+          livrosLidos: 0,
+          livrosLendo: 0,
+          livrosDesejados: 0,
+          notaMedia: 0
+        });
+        return;
       }
       
       const data = await response.json();
-      setEstatisticas(data);
+      
+      // Garantir que todos os valores sejam números válidos
+      const estatisticasProcessadas = {
+        totalAvaliacoes: Number(data.totalAvaliacoes) || 0,
+        livrosLidos: Number(data.lidos) || 0,
+        livrosLendo: Number(data.lendo) || 0,
+        livrosDesejados: Number(data.queroLer) || 0,
+        notaMedia: Number(data.mediaNotas) || 0
+      };
+      
+      setEstatisticas(estatisticasProcessadas);
     } catch (error) {
       console.error("Erro ao carregar estatísticas:", error);
       setEstatisticas({
@@ -130,7 +174,7 @@ export default function Profile() {
     if (!usuario) return;
     
     try {
-      const response = await fetch(`http://localhost:3002/api/usuario/${usuario.id}/bio`, {
+      const response = await fetch(`http://localhost:3002/api/usuarios/${usuario.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ bio: editedBio })
@@ -294,25 +338,25 @@ export default function Profile() {
                       {usuario.bio || "Nenhuma biografia adicionada ainda. Clique no ícone de edição para adicionar informações sobre você!"}
                     </p>
                   )}
-          </div>
-          
+                </div>
+                
                 <div className="flex gap-3">
-              <Button 
+                  <Button 
                     onClick={() => navigate('/livros')}
                     className="bg-[#3A4257] text-white px-6 py-2"
-              >
+                  >
                     Explorar Livros
-              </Button>
-              <Button 
+                  </Button>
+                  <Button 
                     variant="outline"
                     onClick={handleLogout}
                     className="border-red-300 text-red-600 hover:bg-red-50 px-6 py-2"
-              >
-                Sair
-              </Button>
+                  >
+                    Sair
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
           </div>
 
           {/* Estatísticas */}
@@ -352,7 +396,9 @@ export default function Profile() {
             <Card className="text-center">
               <CardContent className="p-6">
                 <Star className="w-8 h-8 text-yellow-400 mx-auto mb-2 fill-current" />
-                <div className="text-2xl font-bold text-yellow-600">{estatisticas.notaMedia.toFixed(1)}</div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {(estatisticas.notaMedia && !isNaN(estatisticas.notaMedia)) ? estatisticas.notaMedia.toFixed(1) : '0.0'}
+                </div>
                 <p className="text-sm text-gray-600">Nota Média</p>
               </CardContent>
             </Card>
@@ -382,7 +428,7 @@ export default function Profile() {
                   >
                     Explorar Livros
                   </Button>
-                  </div>
+                </div>
               ) : (
                 <div className="space-y-6">
                   {avaliacoes.map((avaliacao) => (
@@ -395,7 +441,7 @@ export default function Profile() {
                             imageUrl={avaliacao.imagem}
                             altText={avaliacao.titulo}
                           />
-              </div>
+                        </div>
                         
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-3">
@@ -408,8 +454,8 @@ export default function Profile() {
                                 <Badge className={statusMap[avaliacao.status as keyof typeof statusMap]?.color}>
                                   {statusMap[avaliacao.status as keyof typeof statusMap]?.label}
                                 </Badge>
-          </div>
-        </div>
+                              </div>
+                            </div>
                             <span className="text-sm text-gray-500">
                               {new Date(avaliacao.dataAvaliacao).toLocaleDateString('pt-BR')}
                             </span>
@@ -433,11 +479,11 @@ export default function Profile() {
                               onClick={() => navigate(`/avaliar-livro/${avaliacao.livroId}`)}
                             >
                               Editar Avaliação
-              </Button>
+                            </Button>
                           </div>
-          </div>
-                  </div>
-                </div>
+                        </div>
+                      </div>
+                    </div>
                   ))}
                   
                   {avaliacoes.length > 0 && (
@@ -449,9 +495,9 @@ export default function Profile() {
                       >
                         Ver Todas as Avaliações
                       </Button>
-              </div>
-            )}
-          </div>
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>
